@@ -86,6 +86,34 @@ During my exploration of the device, these are some of the key characteristics t
 
 > **Note**: The characteristics table is a work in progress and sould be re-organized by GATT Service. It will be updated as I continue to explore the device. Unfortunately, I was way too excited to explore as much as possible and didn't take notes of the characteristics I've found. Nonetheless, `aad3` and `aaca` are the most important ones to interact with the device and be able to gather data from it.
 
+## Sample Code
+
+Here's a simple Python script that uses the `bleak` library to interact with the Upright GO V.1 device. This script continuosly reads the current angle of the device and prints it to the console. Check the [code-samples](code-samples) directory for more details.
+
+```python
+import asyncio
+from bleak import BleakClient
+
+async def main():
+    address = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    characteristic_uuid = "0000aac6-0000-1000-8000-00805f9b34fb"
+
+    def notification_handler(sender, data):
+      print(f"Notification from {sender}: {data}")
+
+    async with BleakClient(address) as client:
+      await client.start_notify(characteristic_uuid, notification_handler)
+
+      print(f"Subscribed to notifications from {characteristic_uuid}")
+
+      await asyncio.sleep(3000)
+
+      await client.stop_notify(characteristic_uuid)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
 ## Teardown
 
 ### Front
@@ -96,12 +124,6 @@ During my exploration of the device, these are some of the key characteristics t
 ### Back
 
 ![Back](images/teardown-3.jpg)
-
-## Disclaimer
-
-This project is not affiliated with Upright GO, Texas Instruments, or any other company. The information provided here is for educational purposes only and should not be used for any commercial purposes.
-
-Even though I encourage the use of this information to create some open-source alternatives to the official mobile application, I do not condone the use of this information to create counterfeit devices or to infringe on any intellectual property rights. Please respect the rights of the original creators.
 
 ## TODO
 
@@ -127,6 +149,12 @@ This project is meant to be free and acessible, all contributions are welcome an
 ## Credits
 
 This project was created by [Nilton Heck](https://www.linkedin.com/in/niltonheck/) and is licensed under the MIT License.
+
+## Disclaimer
+
+This project is not affiliated with Upright GO, Texas Instruments, or any other company. The information provided here is for educational purposes only and should not be used for any commercial purposes.
+
+Even though I encourage the use of this information to create some open-source alternatives to the official mobile application, I do not condone the use of this information to create counterfeit devices or to infringe on any intellectual property rights. Please respect the rights of the original creators.
 
 ## Acknowledgements
 
