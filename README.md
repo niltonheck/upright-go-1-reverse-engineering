@@ -17,9 +17,10 @@ The project is currently on hold due to **apparently** a firmware corruption on 
 - [Teardown](#teardown)
   - [Front](#front)
   - [Back](#back)
-- [Disclaimer](#disclaimer)
 - [TODO](#todo)
   - [Minor](#minor)
+- [Credits](#credits)
+- [Disclaimer](#disclaimer)
 - [Acknowledgements](#acknowledgements)
 
 ## Introduction
