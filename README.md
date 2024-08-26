@@ -144,7 +144,7 @@ All of the following tasks are subject to change as I continue to explore the de
 
 If you would like to contribute to this project, please feel free to open an issue or a pull request. I would be happy to collaborate with you!
 
-This project is meant to be free and acessible, all contributions are welcome and will be credited. Please refer to the [CONTRIBUTING](CONTRIBUTING.md) file for more information.
+This project is meant to be free and acessible, all contributions are welcome and will be credited. 
 
 ## Credits
 
