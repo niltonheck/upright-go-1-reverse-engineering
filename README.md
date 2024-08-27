@@ -54,6 +54,14 @@ The CC2540 SoC is programmed using the [Texas Instruments IAR Embedded Workbench
 
 More details on the CC2540 can be found in the [CC2540 Datasheet](https://www.ti.com/lit/ds/symlink/cc2540.pdf).
 
+#### SPI-Connected Peripherals
+
+As per some visual aalyzes of the device, the CC2540 SoC is connected to the following peripherals:
+
+- **Accelerometer**: It's possible to see a `ACC_CS` pin on the board, which is likely connected to the accelerometer's Chip Select (CS) pin.
+
+- **Flash Memory**: Also, there's a `FLASH_CS` pin on the board, which is likely connected to the Flash Memory's Chip Select (CS) pin.
+
 ### BLE
 
 The BLE communication between the Upright GO V.1 and the mobile application is done using the [Generic Attribute Profile (GATT)](https://www.bluetooth.com/specifications/gatt/). The GATT profile is a hierarchical data structure and a standardized set of services and characteristics
@@ -78,7 +86,7 @@ During my exploration of the device, these are some of the key characteristics t
 | UUID   | Type        | Description                                                                                                                                                                                                                                        |
 | ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aad3` | Write       | Sends `\x1` to calibrate the device; Same as pressing the device's button twice or tapping "Calibrate" on the app.                                                                                                                                 |
-| `aab3` | Read        | Reads a 4-byte sequence that likely represents an angle and some additional data (maybe also gyroscope associated), with an integer in front of them. Ex. `bytearray(b'\x00\x9A\x01\x12')` or `[0, 154, 1, 18]`:                                   |
+| `aab3` | Read        | Reads a 4-byte sequence that likely represents an angle and some additional data (maybe also accelerometer associated), with an integer in front of them. Ex. `bytearray(b'\x00\x9A\x01\x12')` or `[0, 154, 1, 18]`:                               |
 | `aaca` | Notify/Read | Reads values seem to provide the current angle of the device, followed by some sort of internal status. **Apparently** the final bytes id `\x02` when the device is considered in a slouched position. Ex.: `bytearray(b'\xe1\x01')` or `[225, 1]` |
 | `aad3` | Write       | If True `\x1` start the vibration on the device; If False `\x0` pauses the vibration. Note: NOT associated with the device's position.                                                                                                             |
 | `aad4` | Write       | If True `\x1` turn on the RED led on the device; If False `\x0` turn off the LED.                                                                                                                                                                  |
