@@ -176,6 +176,8 @@ This project is meant to be free and acessible, all contributions are welcome an
 
 This project was created by [Nilton Heck](https://www.linkedin.com/in/niltonheck/) and is licensed under the MIT License.
 
+Thanks for the folks from /r/AskElectronics for helping me to identify some of the components used on the device.
+
 ## Disclaimer
 
 This project is not affiliated with Upright GO, Texas Instruments, or any other company. The information provided here is for educational purposes only and should not be used for any commercial purposes.
