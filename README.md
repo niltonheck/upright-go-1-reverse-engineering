@@ -176,7 +176,10 @@ This project is meant to be free and acessible, all contributions are welcome an
 
 This project was created by [Nilton Heck](https://www.linkedin.com/in/niltonheck/) and is licensed under the MIT License.
 
-Thanks for the folks from /r/AskElectronics for helping me to identify some of the components used on the device.
+Thanks for the folks from [/r/AskElectronics](https://www.reddit.com/r/AskElectronics) for kindly helping me to identify some of the components used on the device:
+
+- [/u/freaggle_70](https://www.reddit.com/user/freaggle_70/)
+- [/u/BigPurpleBlob](https://www.reddit.com/user/BigPurpleBlob/)
 
 ## Disclaimer
 
