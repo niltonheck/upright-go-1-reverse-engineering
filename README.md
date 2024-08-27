@@ -44,6 +44,17 @@ app](https://help.uprightpose.com/en/articles/1864288-using-your-upright-go-with
 
 The Upright GO V.1 is built on top of the [Texas Instruments CC2540 Bluetooth Low Energy (BLE) System-on-Chip (SoC)](https://www.ti.com/product/CC2540). The device is powered by a 3.7V 115mAh LiPo battery, a 3-axis accelerometer to detect the user's posture, and a vibration motor to provide feedback to the user. For charging, the device provides a Micro-USB port, this port is used exclusively for charging the device and does not provide any data connectivity.
 
+### PBC Versions
+
+The Upright GO 1 was publicly released in at least two difference PCB versions: UR-01**B**-01A and UR-01**C**-01A. The main difference between the two versions is the accelerometer and the amplifiers used.
+
+| PCB Version | Accelerometer    | Amplifiers                             |
+| ----------- | ---------------- | -------------------------------------- |
+| UR-01C-01A  | BMA250 or LIS2xx | INA 326 or INA2xx with/without MCP6001 |
+| UR-01B-01A  | ADXL362          | AD8426                                 |
+
+Source: [FCCID - Declaration Letter of Model Difference](https://fccid.io/2AFW3-UR01/Attestation-Statements/Declaration-Letter-of-Model-difference-2791495.pdf)
+
 ### CC2540
 
 The CC2540 SoC allows engineers to create a custom BLE profile used to communicate with other devices. The BLE profile is a set of rules that defines how the device and the mobile application communicate with each other.
@@ -58,9 +69,11 @@ More details on the CC2540 can be found in the [CC2540 Datasheet](https://www.ti
 
 As per some visual aalyzes of the device, the CC2540 SoC is connected to the following peripherals:
 
-- **Accelerometer**: It's possible to see a `ACC_CS` pin on the board, which is likely connected to the accelerometer's Chip Select (CS) pin.
+- **Accelerometer**: The components used are the [BMA250](https://www.mouser.com/ProductDetail/Bosch-Sensortec/BMA250?qs=d72FGnIDsgQVAY4lp6G4iA%3D%3D) or LIS2xx for the UR-01C-01A PCB version and [ADXL362](https://www.analog.com/media/en/technical-documentation/data-sheets/adxl362.pdf) for the UR-01B-01A PCB version. All of these are 3-axis accelerometers. Component is located near the LED with a "387KA" inscription on it.
 
-- **Flash Memory**: Also, there's a `FLASH_CS` pin on the board, which is likely connected to the Flash Memory's Chip Select (CS) pin.
+> The PCB I have is one variation of the A model, and used a BMA250 accelerometer, so I can't tell for sure which version of the LIS2xx is used on the other variants of the A model.
+
+- **Flash Memory**: There's a `FLASH_CS` pin on the board, which is likely connected to the Flash Memory's Chip Select (CS) pin. I coudn't really identify the Flash memory in use.
 
 ### BLE
 
@@ -134,6 +147,10 @@ if __name__ == "__main__":
 
 ![Back](images/teardown-3.jpg)
 
+### FFCID Photos
+
+Some internal photos of the device can be found in [FFCID website](https://fccid.io/2AFW3-UR01/Internal-Photos/Internal-Photos-3450239) but they seem to represent an early verison of the device that uses a few different components compared to the versions mentioned in the [PCB Versions](#pcb-versions) section.
+
 ## TODO
 
 All of the following tasks are subject to change as I continue to explore the device and **are not in any particular order**. By the way, feel free to suggest new tasks, improvements, or contribute.
@@ -147,13 +164,13 @@ All of the following tasks are subject to change as I continue to explore the de
 
 ### Minor
 
-- [ ] Identify the location of the accelerometer on the device. (I was not able to find it during the teardown due to my awful sight)
+- [x] Identify the location of the accelerometer on the device. (I was not able to find it during the teardown due to my awful sight)
 
 ## Contributing
 
 If you would like to contribute to this project, please feel free to open an issue or a pull request. I would be happy to collaborate with you!
 
-This project is meant to be free and acessible, all contributions are welcome and will be credited. 
+This project is meant to be free and acessible, all contributions are welcome and will be credited.
 
 ## Credits
 
