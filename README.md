@@ -164,7 +164,7 @@ All of the following tasks are subject to change as I continue to explore the de
 
 ### Minor
 
-- [x] Identify the location of the accelerometer on the device. (I was not able to find it during the teardown due to my awful sight)
+- [x] Identify the location of the accelerometer on the device. (thanks to [/u/freaggle_70](https://www.reddit.com/user/freaggle_70/))
 
 ## Contributing
 
