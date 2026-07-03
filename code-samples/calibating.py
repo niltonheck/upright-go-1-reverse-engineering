@@ -11,8 +11,11 @@ if __name__ == "__main__":
     # Replace with your device's address
     device_address = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
-    # Replace with your characteristic UUID
-    characteristic_uuid = "0000aaa6-0000-1000-8000-00805f9b34fb"
+    # Calibration characteristic (aab1). NOTE: an earlier version of this
+    # sample used aaa6, which does not exist in the device's GATT tree —
+    # hardware-confirmed 2026-07-03 (see PROTOCOL.md). The device acks a
+    # successful calibration with a double vibration.
+    characteristic_uuid = "0000aab1-0000-1000-8000-00805f9b34fb"
 
     # Run the asyncio event loop
     asyncio.run(send_signals(device_address, characteristic_uuid))

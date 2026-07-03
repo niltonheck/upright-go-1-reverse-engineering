@@ -4,16 +4,28 @@ This project aims to reverse engineer the Upright GO V.1 posture corrector devic
 
 ![License](https://img.shields.io/github/license/niltonheck/upright-go-1-reverse-engineering)
 
-**Status**: Work in Progress
-The project is currently on hold due to **apparently** a firmware corruption on the device I was using. It seems that the device allows firmware updates without checking the integrity of the firmware, which can lead to a bricked device - and I believe that's what happened to mine while I was too excited to test all `write` characteristics by pushing `\x1`. :innocent: I'm currently looking for a way to recover the device (or get a new one), but I'm not sure if it's possible. If you have any suggestions, please let me know!
+**Status**: Protocol fully mapped ✅
+
+> **2026-07 update:** the BLE protocol is now **100% characterized** — every
+> characteristic the device exposes is decoded or explicitly catalogued, with
+> expected behaviors verified on real hardware. See
+> **[PROTOCOL.md](PROTOCOL.md)** for the complete reference (calibration
+> lifecycle, posture status machine, worn sensor, pause mode, battery,
+> per-minute telemetry, and corrections to this README's original
+> work-in-progress table). The findings were produced while building
+> [Open Posture Companion](https://github.com/niltonheck/open-posture-companion),
+> an open-source replacement for the discontinued official app.
+
+Historical note: the project was on hold for a while due to **apparently** a firmware corruption on the device I was using. It seems that the device allows firmware updates without checking the integrity of the firmware, which can lead to a bricked device - and I believe that's what happened to mine while I was too excited to test all `write` characteristics by pushing `\x1`. :innocent: All later exploration used a strict read-first methodology (described in [PROTOCOL.md](PROTOCOL.md#methodology)) — learn from my mistake and never write to the `aae0` service.
 
 ### Table of Contents
 
 - [Introduction](#introduction)
+- [**Full Protocol Reference (PROTOCOL.md)**](PROTOCOL.md)
 - [Hardware](#hardware)
   - [CC2540](#cc2540)
   - [BLE](#ble)
-    - [Characteristics Table: WIP](#characteristics-table-wip)
+    - [Characteristics Table](#characteristics-table)
 - [Teardown](#teardown)
   - [Front](#front)
   - [Back](#back)
@@ -92,21 +104,29 @@ Each GATT service has a unique 128-bit UUID that is used to identify the service
 
 So, characteristics can be understood similarly to what an endpoint is to a web API, where you can read, write, and subscribe to changes in the data (as a webhook or a WebSocket). We can use the characteristics to read and write data to the device.
 
-#### Characteristics Table: WIP (Work in Progress)
+#### Characteristics Table
 
-During my exploration of the device, these are some of the key characteristics that I have identified so far (I used Python's [`bleak`](https://github.com/hbldh/bleak) library to interact with the device):
+The full, hardware-verified reference — organized by GATT service, with
+expected behaviors, byte formats, and the calibration/pause/telemetry
+lifecycles — lives in **[PROTOCOL.md](PROTOCOL.md)**. Quick summary of the
+key characteristics:
 
-| UUID   | Type        | Description                                                                                                                                                                                                                                        |
-| ------ | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aab1` | Write       | Sends `\x1` to calibrate the device; Same as pressing the device's button twice or tapping "Calibrate" on the app.                                                                                                                                 |
-| `aab3` | Read        | Reads a 4-byte sequence that likely represents an angle and some additional data (maybe also accelerometer associated), with an integer in front of them. Ex. `bytearray(b'\x00\x9A\x01\x12')` or `[0, 154, 1, 18]`:                               |
-| `aaca` | Notify/Read | Reads values seem to provide the current angle of the device, followed by some sort of internal status. **Apparently** the final bytes id `\x02` when the device is considered in a slouched position. Ex.: `bytearray(b'\xe1\x01')` or `[225, 1]` |
-| `aad3` | Write       | If True `\x1` start the vibration on the device; If False `\x0` pauses the vibration. Note: NOT associated with the device's position.                                                                                                             |
-| `aad4` | Write       | If True `\x1` turn on the RED led on the device; If False `\x0` turn off the LED.                                                                                                                                                                  |
-| `aad5` | Write       | If True `\x1` turn on the BLUE led on the device; If False `\x0` turn off the LED.                                                                                                                                                                 |
-| `aac6` | Notify/Read | Reads a toggled value between `\x1` or `\x0` if the button on the device is pressed.                                                                                                                                                               |
-
-> **Note**: The characteristics table is a work in progress and sould be re-organized by GATT Service. It will be updated as I continue to explore the device. Unfortunately, I was way too excited to explore as much as possible and didn't take notes of the characteristics I've found. Nonetheless, `aad3` and `aaca` are the most important ones to interact with the device and be able to gather data from it.
+| UUID   | Type              | Description                                                                                                                                          |
+| ------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aab1` | Write             | `\x01` calibrates: samples the wearer's current posture as the baseline, acks with a double vibration, and arms the device's slouch vibration.       |
+| `aab2` | Read              | Calibration state: `\x00` not calibrated (always the case after a power cycle — the device never vibrates until recalibrated), `\x02` calibrated.    |
+| `aab3` | Read              | Stored calibration record (not a live angle): two big-endian uint16s in deci-degrees, `[baseline][threshold]`, threshold = baseline + 120 (+12°).     |
+| `aaca` | Notify/Read       | Continuous absolute forward-tilt angle: uint16 little-endian, tenths of a degree (~200 upright → ~800 near-horizontal). Not a status byte.            |
+| `aac4` | Notify/Read       | Posture status: `\x00` upright, `\x01` slouched (grace period ~57 s), `\x02` slouched + vibrating. (This is where "0x02 = slouching" actually lives.) |
+| `aac3` | Notify/Read       | Worn sensor: `\x01` worn, `\x00` not worn.                                                                                                            |
+| `aac6` | Notify/Read       | Physical button: toggles `\x01`/`\x00` per press.                                                                                                     |
+| `aac7` | Notify/Read/Write | Pause mode (`\x01` = sensing but no vibration). Writable — an app can pause/resume like a button press.                                               |
+| `aac9` | Notify/Read       | Per-minute telemetry byte: bit7 = currently slouched, bit6 = paused, low bits = slouch excursions in the last minute. Notifies every ~60 s.            |
+| `aad2` | Notify/Read       | Battery voltage, uint16 little-endian millivolts (single-cell LiPo, ~3550–4130 observed). Notifies every ~60 s.                                        |
+| `aaa2` | Notify/Read       | Charger connected: `\x01`/`\x00`.                                                                                                                     |
+| `aad3` | Write             | Vibration motor: `\x01` on, `\x00` off. Strictly 1 byte; all other values are no-ops — no pattern/intensity interface exists.                          |
+| `aad4` | Write             | Red LED: `\x01` on (steady), `\x00` off.                                                                                                              |
+| `aad6` | Write             | Green LED: `\x01` on (blinks while on — firmware pattern), `\x00` off. **There is no `aad5` and no blue LED** (earlier versions of this table were wrong). |
 
 ## Sample Code
 
@@ -158,9 +178,9 @@ All of the following tasks are subject to change as I continue to explore the de
 ## Major
 
 - [x] Write the first draft of the README.
-- [ ] Create a more detailed characteristics table. (WIP)
+- [x] Create a more detailed characteristics table. → **[PROTOCOL.md](PROTOCOL.md)** (2026-07: complete map, all characteristics decoded or catalogued)
 - [ ] Create a minimalistic Python library to interact with the device from a computer.
-- [ ] Create a mobile application to interact with the device. Maybe using Flutter or React Native to make it cross-platform.
+- [x] Create a mobile application to interact with the device. → **[Open Posture Companion](https://github.com/niltonheck/open-posture-companion)** (React Native / Expo)
 
 ### Minor
 
