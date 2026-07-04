@@ -175,14 +175,17 @@ streams (meaningless) tilt on `aaca`.
 Toggles between `0x01` and `0x00` on each physical button press (a toggle, not
 a momentary press/release pair).
 
-#### `aac7` — Pause mode (notify, read, **write — verified**)
+#### `aac7` — Training/Tracking mode toggle (notify, read, **write — verified**)
 
-The training pause toggled by a single physical button press:
+The official app presents these as the device's two first-class modes —
+**Training** (slouch vibration active) and **Tracking** (silent recording) —
+switched by a single physical button press. Earlier drafts of this document
+called Tracking "pause mode"; it is the same flag:
 
 | Value | Meaning |
 | --- | --- |
-| `0x01` | Paused — device keeps sensing (tilt stream continues, `aac4` keeps updating) but never vibrates |
-| `0x00` | Active — normal training-mode behavior |
+| `0x01` | Tracking — device keeps sensing (tilt stream continues, `aac4` keeps updating, `aac9` keeps counting excursions) but never vibrates |
+| `0x00` | Training — slouch vibration armed (only actually buzzes while calibrated, see `aab2`) |
 
 **Writing works** (verified 2026-07-03 with a gated null-write → pause →
 resume probe): writing `0x01`/`0x00` pauses/resumes exactly like a button
@@ -208,9 +211,13 @@ Examples: `0x00` upright/active/quiet minute · `0x40` upright/paused ·
 Verified tick-by-tick: 1 excursion → `0x01`, 2 → `0x02`. Counter saturation
 untested. A read returns the latest tick's value — this is a **rolling
 summary, not persistent state** (early sessions misread it as a sticky flag).
-Almost certainly the official app's data source for per-minute posture stats:
-subscribing to this single byte gives a posture timeline without streaming
-`aaca`.
+This matches the official app's data model (Training/Tracking time accounting
+plus slouches-over-time): subscribing to this single byte gives a posture
+timeline — and, via bit 6, per-mode minute counts — without streaming `aaca`.
+Whether the device also *buffers* these summaries for later sync while no
+phone is connected is untested; if it does, the store would live in the
+unprobed read/write characteristics (`aac1`, `aac2`, `aac5`, `aac8`) or the
+unknown-purpose `aaa0`/`aae0` services.
 
 #### Catalogued but undecoded (`aac0` service)
 
@@ -328,11 +335,13 @@ Revision (`B 1.1.4`), `2a27` Hardware Revision (`B0_B1`), `2a29` Manufacturer
 4. BLE disconnects do **not** affect calibration; power cycles reset it
    (step 1).
 
-### Pause/resume
+### Training vs Tracking (pause/resume)
 
-A single physical button press — or a write to `aac7` — toggles pause. While
-paused the device senses normally (`aaca`, `aac4`, `aac9` all keep updating)
-but never vibrates. Direct motor writes (`aad3`) still work while paused.
+A single physical button press — or a write to `aac7` — switches between the
+two modes the official app exposes: **Training** (vibration active) and
+**Tracking** (silent). While tracking the device senses normally (`aaca`,
+`aac4`, `aac9` all keep updating) but never vibrates. Direct motor writes
+(`aad3`) still work while tracking.
 
 ### The ~60-second housekeeping tick
 

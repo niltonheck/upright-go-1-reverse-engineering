@@ -120,7 +120,7 @@ key characteristics:
 | `aac4` | Notify/Read       | Posture status: `\x00` upright, `\x01` slouched (grace period ~57 s), `\x02` slouched + vibrating. (This is where "0x02 = slouching" actually lives.) |
 | `aac3` | Notify/Read       | Worn sensor: `\x01` worn, `\x00` not worn.                                                                                                            |
 | `aac6` | Notify/Read       | Physical button: toggles `\x01`/`\x00` per press.                                                                                                     |
-| `aac7` | Notify/Read/Write | Pause mode (`\x01` = sensing but no vibration). Writable — an app can pause/resume like a button press.                                               |
+| `aac7` | Notify/Read/Write | Training/Tracking mode toggle (`\x01` = Tracking: sensing but no vibration — the official app's second mode, aka "pause"). Writable — an app can switch modes like a button press. |
 | `aac9` | Notify/Read       | Per-minute telemetry byte: bit7 = currently slouched, bit6 = paused, low bits = slouch excursions in the last minute. Notifies every ~60 s.            |
 | `aad2` | Notify/Read       | Battery voltage, uint16 little-endian millivolts (single-cell LiPo, ~3550–4130 observed). Notifies every ~60 s.                                        |
 | `aaa2` | Notify/Read       | Charger connected: `\x01`/`\x00`.                                                                                                                     |
