@@ -214,10 +214,14 @@ summary, not persistent state** (early sessions misread it as a sticky flag).
 This matches the official app's data model (Training/Tracking time accounting
 plus slouches-over-time): subscribing to this single byte gives a posture
 timeline — and, via bit 6, per-mode minute counts — without streaming `aaca`.
-Whether the device also *buffers* these summaries for later sync while no
-phone is connected is untested; if it does, the store would live in the
-unprobed read/write characteristics (`aac1`, `aac2`, `aac5`, `aac8`) or the
-unknown-purpose `aaa0`/`aae0` services.
+**No retrievable history buffer** (read-only probe, 2026-07-04): after 10
+minutes of disconnected wear including deliberate slouch excursions, nothing
+replayed on reconnect, `aac9` held only its rolling last-minute value, and the
+`aae3`/`aae4` buffers read all-zero before and after. If the official app ever
+synced stored history, the mechanism must involve the write-only
+`aae2`/`aae5` (untested here — undocumented writes are how the original test
+device got bricked). Practical consequence: a companion app builds posture
+history by accumulating `aac9` ticks while connected.
 
 #### Catalogued but undecoded (`aac0` service)
 
@@ -225,7 +229,7 @@ unknown-purpose `aaa0`/`aae0` services.
 | --- | --- | --- | --- |
 | `aac1` | read, write | `03` | constant across sessions |
 | `aac2` | read, write | `28 00 0a 1e` (= 40, 0, 10, 30) | constant; smells like config parameters (possibly timing/threshold settings — untested) |
-| `aac5` | read | e.g. `8b 0d 07 00` → `23 0f 07 00` | uint32 LE counter, increments steadily — uptime/tick counter |
+| `aac5` | read | e.g. `8b 0d 07 00` → `23 0f 07 00` | uint32 LE counter — **uptime since power-on in deciseconds (~10 Hz)**: Δ 6,822 across a timed ~11 min gap (2026-07-04). Probable, single-session evidence |
 | `aac8` | read, write | `01` | constant across sessions |
 
 ### Outputs & power telemetry (`aad0`)
@@ -303,10 +307,10 @@ plug/unplug. Pair with `aad2` for a full battery display.
 
 | UUID | Properties | Observed |
 | --- | --- | --- |
-| `aae1` | read | `16 00 bb 0b` (constant) |
+| `aae1` | read | NOT constant across sessions: `16 00 bb 0b` → later `1a 00 c3 0b` → `1b 00 cd 0b`. Reads as two uint16 LE counters — first incremented by exactly 1 across one disconnect/reconnect cycle (probable **connection/session counter**: 22 → 26 → 27), second monotonic and +10 across a timed ~10 min gap (probable **lifetime-minutes counter**: 3003 → 3011 → 3021). Probable, limited samples (2026-07-04) |
 | `aae2`, `aae5` | write | never written |
-| `aae3` | read, notify | 20 bytes, all zero |
-| `aae4` | read, write, notify | 18 bytes, all zero |
+| `aae3` | read, notify | 20 bytes, all zero (still all-zero after 10 min of disconnected wear with slouch excursions — not a visible history buffer) |
+| `aae4` | read, write, notify | 18 bytes, all zero (same) |
 
 The zero-filled multi-byte read/write/notify characteristics are consistent
 with a firmware-update (OTA) data path. **Given the confirmed brick risk, this
